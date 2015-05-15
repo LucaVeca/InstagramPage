@@ -10,8 +10,43 @@ define('clientSecret', 'efef604516504205a5fb3f811b3b7d2a');
 define('redirectURI', 'http://localhost/appacademyapi/index.php');
 define('ImageDirectory', 'pics/');
 
+//Function that is gouing to connect to instagram
+function connectToInstagram($url){
+	$ch = curl_init();
+
+	curl_setopt_array($ch, array(
+		CURLOPT_URL => $url,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_SSL_VERIFYPEER => false,
+		CURLOPT_SSL_VERIFYHOST => 2,
+	));
+	$result = curl_exec($ch);
+	curl_close($ch);
+	return $result;
+}
+//Function to get userID cause userName doesn't allow us to get pictures
+function getUserID($userName){
+	$url = 'http://api.instagram.com/v1/users/search?q=' . $userName . '&client_id=' . clientID;
+	$instagramInfo = connectToInstagram($url);
+	$results = json_decode($instagramInfo, true);
+
+	echo $results['data']['0']['id'];
+}
+//Function to print out images onto screen
+function printImages($userID){
+	$url = 'http://api.instagram.com/v1/users' . $userID . '/media/recent?client_id=' . clientID . '&count=5';
+	$instagramInfo = connectToInstagram($url);
+	$results = json_encode($instagramInfo, true);
+	//Parse through the information one by one
+	foreach($results['data'] as $items){
+		$image_url = $items['images']['low_resolution']['url'];//going to go through all my results and give myself back the URL of those pictures becuase we want to save it in the PHP Server
+		echo '<img src="' . $image_url . '">';
+	} 
+}
+
+
 if (isset($_GET['code'])){
-	$code = ($_GET['code']);
+	$code = $_GET['code'];
 	$url = 'https//api.instagram.com/oauth/access_token';
 	$access_token_settings = array('client_id' => clientID,
 									'client_secret' => clientSecret,
@@ -25,9 +60,21 @@ curl_setopt($curl, CURLOPT_POST, true);
 curl_setopt($curl, CURLOPT_POSTFIELDS, $access_token_settings); //setting the POSTFIELDS to the array setup that we created
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1); //setting is equal to 1 because  we are getting strings back
 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); //
-}
+
 $result = curl_exec($curl);
-curl_close();
+curl_close($curl);
+
+$results = json_decode($result, true);
+
+$userName = $results['user']['username'];
+
+$userID = getUserID($userName);
+
+printImages($userID);
+}
+else {
+
+}
 ?>
 
 <!DOCTYPE html>
@@ -44,7 +91,7 @@ curl_close();
 	<!-- Creating a login for people to go and give approval for our web app to access their Instagram Account
 		 After getting aprroval we are now going to have the information so that we can play with it.
 	 -->
-	<div><a href="https://api.instagram.com/oauth/authorize/?client_id=<?php echo clientID; ?>&redirect_uri=<?php echo redirectURI; ?>&response_type=code">Login</a></div>
+	<div class="box"><a href="https://api.instagram.com/oauth/authorize/?client_id=<?php echo clientID; ?>&redirect_uri=<?php echo redirectURI; ?>&response_type=code">Login</a></div>
 	<script src="js/main.js"></script>
 </body>
 </html>
