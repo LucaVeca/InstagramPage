@@ -1,19 +1,24 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<link type="text/css" rel="stylesheet" href="css/style.css">
+		<title></title>
+	</head>
 <?php 
 //Configuration for PHP server
 set_time_limit(0);
 ini_set('default_socket_timeout', 300);
-//starts session
 session_start();
-//Make Constants using define
-define("clientID", '78ed3591a4da4b6c991290b24fee2970');
-define('clientSecret', 'efef604516504205a5fb3f811b3b7d2a');
+//Make constants using define
+define('clientID', '85efc6e7ff914be59eadae47c5915030');
+define('clientSecret', 'bc204bdc62f44031ae5bd206ae19e2a8');
 define('redirectURI', 'http://localhost/appacademyapi/index.php');
 define('ImageDirectory', 'pics/');
 
-//Function that is gouing to connect to instagram
-function connectToInstagram($url){
+//function that is going to connect to instagram
+function connectToInstagram($url) {
 	$ch = curl_init();
-
 	curl_setopt_array($ch, array(
 		CURLOPT_URL => $url,
 		CURLOPT_RETURNTRANSFER => true,
@@ -24,75 +29,63 @@ function connectToInstagram($url){
 	curl_close($ch);
 	return $result;
 }
-//Function to get userID cause userName doesn't allow us to get pictures
-function getUserID($userName){
-	$url = 'http://api.instagram.com/v1/users/search?q=' . $userName . '&client_id=' . clientID;
+//function to get userid cause username doesnt allow us to get pictures
+function getUserID($userName) {
+	$url = 'https://api.instagram.com/v1/users/search?q=' . $userName . '&client_id=' .clientID;
 	$instagramInfo = connectToInstagram($url);
 	$results = json_decode($instagramInfo, true);
-
-	echo $results['data']['0']['id'];
+	return $results['data'][0]['id'];
 }
-//Function to print out images onto screen
-function printImages($userID){
-	$url = 'http://api.instagram.com/v1/users' . $userID . '/media/recent?client_id=' . clientID . '&count=5';
+//function to print out images onto screen
+function printImages($userID) {
+	$url = 'https://api.instagram.com/v1/users/' . $userID . '/media/recent?client_id=' . clientID . '&count=9';
 	$instagramInfo = connectToInstagram($url);
-	$results = json_encode($instagramInfo, true);
-	//Parse through the information one by one
-	foreach($results['data'] as $items){
-		$image_url = $items['images']['low_resolution']['url'];//going to go through all my results and give myself back the URL of those pictures becuase we want to save it in the PHP Server
-		echo '<img src="' . $image_url . '">';
-	} 
+	$results = json_decode($instagramInfo, true);
+	//going to parse through info one by one
+	foreach ($results['data'] as $items) {
+		$image_url = $items['images']['low_resolution']['url'];
+		echo '<img src=" ' . $image_url . ' " class="pic-style">';
+	}
 }
-
-
-if (isset($_GET['code'])){
-	$code = $_GET['code'];
-	$url = 'https//api.instagram.com/oauth/access_token';
+if (isset($_GET['code'])) {
+	$code = ($_GET['code']);
+	$url = 'https://api.instagram.com/oauth/access_token';
 	$access_token_settings = array('client_id' => clientID,
 									'client_secret' => clientSecret,
 									'grant_type' => 'authorization_code',
 									'redirect_uri' => redirectURI,
 									'code' => $code
 									);
-//cURL is what we use in PHP, its" a library calls to other API's
-$curl = curl_init($url); //setting a cURL session and we put in $url because that's what we are getting the data from
-curl_setopt($curl, CURLOPT_POST, true);
-curl_setopt($curl, CURLOPT_POSTFIELDS, $access_token_settings); //setting the POSTFIELDS to the array setup that we created
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1); //setting is equal to 1 because  we are getting strings back
-curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); //
-
-$result = curl_exec($curl);
-curl_close($curl);
-
-$results = json_decode($result, true);
-
-$userName = $results['user']['username'];
-
-$userID = getUserID($userName);
-
-printImages($userID);
+	//cURL is what we use in php, library for calls to other apis
+	$curl = curl_init($url); //setting curl session, get data from url
+	curl_setopt($curl, CURLOPT_POST, true);	
+	curl_setopt($curl, CURLOPT_POSTFIELDS, $access_token_settings); //setting POSTFIELDS to array setup we created
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1); //setting equal to 1, getting strings back
+	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); //work, set to true
+	$result = curl_exec($curl);
+	curl_close($curl);
+	$results = json_decode($result, true);
+	$userName = $results['user']['username'];
+	$userID = getUserID($userName);
+	printImages($userID);
 }
 else {
 
-}
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="description" content="">
-	<meta name="viewport" content="width098, intitial-scale = 1">
-	<title>InstApi</title>
-	<meta rel="stylesheet" href="css/style.css">
-	<meta rel="author" href="humans.txt">
-</head>
-<body>
-	<!-- Creating a login for people to go and give approval for our web app to access their Instagram Account
-		 After getting aprroval we are now going to have the information so that we can play with it.
-	 -->
-	<div class="box"><a href="https://api.instagram.com/oauth/authorize/?client_id=<?php echo clientID; ?>&redirect_uri=<?php echo redirectURI; ?>&response_type=code">Login</a></div>
-	<script src="js/main.js"></script>
-</body>
-</html>
 
+	<body>
+		<div class="box">
+		<a href="https:api.instagram.com/oauth/authorize/?client_id=<?php echo clientID; ?>
+		&redirect_uri=<?php echo redirectURI; ?>&response_type=code"><img src="http://fontmeme.com/embed.php?text=LOGIN%0A&name=
+HAMBH___.ttf&size=100&style_color=FF42E9" alt="Retro Fonts"></a></a>
+		<!-- creating login for people to get approve for web app to use Instagram account
+		after getting aprroval now going to have info to play with it -->
+		</div>
+
+	</body>
+	<script type="text/javascript" src="js/main.js"></script>
+</html>
+<?php
+}
+?>
